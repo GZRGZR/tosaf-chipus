@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "תוסף חיפוש חכם – שיחות ואתרים",
+  "version": "1.1.0",
+  "description": "חיפוש מקומי ומאוחד בשיחות AI ובהיסטוריית הגלישה, עם הרחבת שאילתה פרטית באמצעות Gemini.",
+  "permissions": ["storage", "history", "tabs", "scripting"],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*",
+    "https://aistudio.google.com/*",
+    "https://claude.ai/*"
+  ],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "חיפוש שיחות ואתרים" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "commands": {
+    "open-search": {
+      "suggested_key": { "default": "Ctrl+Shift+K", "windows": "Ctrl+Shift+K" },
+      "description": "פתח חיפוש"
+    }
+  },
+  "options_page": "options.html",
+  "content_scripts": [{
+    "matches": [
+      "https://chatgpt.com/*",
+      "https://chat.openai.com/*",
+      "https://gemini.google.com/*",
+      "https://aistudio.google.com/*",
+      "https://claude.ai/*",
+      "http://*/*",
+      "https://*/*"
+    ],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }]
+}
