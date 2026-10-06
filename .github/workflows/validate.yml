@@ -1,1 +1,16 @@
-name: Validate extension\non:\n  push:\n  pull_request:\njobs:\n  syntax:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n      - name: Validate manifest\n        run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest ok')"\n      - name: Check JavaScript syntax\n        run: for f in *.js; do node --check "$f"; done\n
+name: Validate extension
+on:
+  push:
+  pull_request:
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate manifest
+        run: node -e "JSON.parse(require('fs').readFileSync('manifest.json','utf8')); console.log('manifest ok')"
+      - name: Check JavaScript syntax
+        run: for f in *.js; do node --check "$f"; done
