@@ -28,8 +28,9 @@ chrome.commands.onCommand.addListener(async c=>{if(c==="open-search")try{await c
 chrome.history.onVisited.addListener(async item=>{const s=await settings();if(!item.url)return;const src=sourceFor(item.url);if(src==="web"&&!s.indexWeb)return;if(src!=="web"&&!s.indexAi)return;await dbPut({id:"history:"+item.id,source:src,title:item.title||item.url,url:item.url,text:"",visitedAt:item.lastVisitTime||Date.now(),kind:"history",siteKey:siteKeyFor(item.url)})});
 chrome.runtime.onMessage.addListener((m,sender,send)=>{(async()=>{
   const st=await settings();
-  if(m.type==="getState")return{ok:true,settings:st,count:await dbCount(),readLaterCount:await dbReadLaterCount(),geminiKeyPresent:!!(await getGeminiKey())};
-  if(m.type==="getIndexPolicy")return{ok:true,active:m.source==="web"?st.indexWebContent:st.indexAi,delaySec:st.webIndexDelaySec};
+  if(m.type==="getState"){requireUi(sender);return{ok:true,settings:st,count:await dbCount(),readLaterCount:await dbReadLaterCount(),geminiKeyPresent:!!(await getGeminiKey())}};
+  if(m.type==="getIndexPolicy"){return{ok:true,active:m.source==="web"?st.indexWebContent:st.indexAi,delaySec:st.webIndexDelaySec}};
+  if(m.type==="getSitePolicy"){requireUi(sender);return{ok:true,blocked:isBlockedSite(m.url),webIndex:st.indexWebContent}};
   if(m.type==="setGeminiKey"){requireUi(sender);const key=String(m.key||"").trim();if(key)await chrome.storage.session.set({geminiKey:key});else await chrome.storage.session.remove("geminiKey");return{ok:true}};
   if(m.type==="saveSettings"){requireUi(sender);const ns={...st,...m.settings};delete ns.geminiKey;await chrome.storage.local.set({settings:ns});if(ns.indexWebContent){if(!(await chrome.permissions.contains({origins:["http://*/*","https://*/*"]})))throw Error("נדרשת הרשאת אתרים");await ensureWebScript(true)}else await ensureWebScript(false);if(!ns.geminiEnabled)await chrome.storage.session.remove("geminiKey");return{ok:true}};
   if(m.type==="requestWebPermission"){requireUi(sender);const ok=await chrome.permissions.request({origins:["http://*/*","https://*/*"]});if(ok)await ensureWebScript(true);return{ok}};
