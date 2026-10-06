@@ -3,13 +3,60 @@
   "name": "תוסף חיפוש חכם – שיחות ואתרים",
   "version": "2.0.0",
   "description": "חיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרים, עם הרחבת שאילתה אופציונלית באמצעות Gemini.",
-  "permissions": ["storage", "history", "scripting", "sidePanel"],
-  "host_permissions": ["https://chatgpt.com/*","https://chat.openai.com/*","https://gemini.google.com/*","https://aistudio.google.com/*","https://claude.ai/*"],
-  "optional_host_permissions": ["http://*/*","https://*/*"],
-  "background": {"service_worker": "background.js", "type": "module"},
-  "action": {"default_title": "חיפוש שיחות ואתרים"},
-  "side_panel": {"default_path": "sidepanel.html"},
-  "commands": {"open-search": {"suggested_key": {"default": "Ctrl+Shift+K","windows": "Ctrl+Shift+K"},"description": "פתח חיפוש"}},
+  "permissions": [
+    "storage",
+    "history",
+    "scripting",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://gemini.google.com/*",
+    "https://aistudio.google.com/*",
+    "https://claude.ai/*"
+  ],
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "חיפוש שיחות ואתרים"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "commands": {
+    "open-search": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "windows": "Ctrl+Shift+K"
+      },
+      "description": "פתח חיפוש"
+    }
+  },
   "options_page": "options.html",
-  "content_scripts": [{"matches":["https://chatgpt.com/*","https://chat.openai.com/*","https://gemini.google.com/*","https://aistudio.google.com/*","https://claude.ai/*"],"js":["content.js"],"run_at":"document_idle"}]
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://gemini.google.com/*",
+        "https://aistudio.google.com/*",
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "minimum_chrome_version": "114",
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
