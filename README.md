@@ -1,4 +1,4 @@
-# Tosaf Chipus – AI Universal Search v2.2.0
+# Tosaf Chipus – AI Universal Search v2.3.0
 
 תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובאתרי Web.
 
@@ -62,3 +62,10 @@ AI Studio: JSON/JSONL במבנים נפוצים. פורמט עתידי עשוי 
 
 ## License
 MIT
+
+## v2.3.0 fixes
+- Fixed extension-UI authorization so Options pages opened as tabs are accepted.
+- Removed the raw Gemini API-key getter from runtime messaging; the key is never returned to UI code.
+- Centralized sensitive-site blocking in the background worker and the popup checks policy before extracting page text for AI.
+- Added a token index capped at 1000 unique tokens per document, with full-scan fallback when no indexed candidate exists.
+- Unified AI and Web content indexing in content.js.
