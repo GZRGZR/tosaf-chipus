@@ -4,10 +4,10 @@ const AI=["chatgpt","gemini","aistudio","claude"];
 function sourceFor(url=""){try{const h=new URL(url).hostname;if(/chatgpt\\.com|chat\\.openai\\.com/.test(h))return"chatgpt";if(/gemini\\.google\\.com/.test(h))return"gemini";if(/aistudio\\.google\\.com/.test(h))return"aistudio";if(/claude\\.ai/.test(h))return"claude"}catch{}return"web"}
 async function settings(){const x=await chrome.storage.local.get({settings:DEFAULT});return{...DEFAULT,...x.settings}}
 async function ensureWebScript(enable){try{const ids=(await chrome.scripting.getRegisteredContentScripts()).map(x=>x.id);if(enable&&!ids.includes("web-indexer")){await chrome.scripting.registerContentScripts([{id:"web-indexer",matches:["http://*/*","https://*/*"],js:["web-content.js"],runAt:"document_idle",persistAcrossSessions:true}])}if(!enable&&ids.includes("web-indexer"))await chrome.scripting.unregisterContentScripts({ids:["web-indexer"]})}catch(e){console.warn("web script",e)}}
-chrome.runtime.onInstalled.addListener(async()=>{const s=await settings();await chrome.storage.local.set({settings:s});await ensureWebScript(s.indexWebContent)});
+chrome.storage.local.setAccessLevel?.({accessLevel:"TRUSTED_CONTEXTS"}).catch(()=>{});\nchrome.runtime.onInstalled.addListener(async()=>{const s=await settings();await chrome.storage.local.set({settings:s});await ensureWebScript(s.indexWebContent)});
 chrome.runtime.onStartup.addListener(async()=>{const s=await settings();await ensureWebScript(s.indexWebContent)});
 chrome.commands.onCommand.addListener(async c=>{if(c==="open-search")try{await chrome.sidePanel.open({windowId:(await chrome.windows.getCurrent()).id})}catch{}});
-chrome.history.onVisited.addListener(async item=>{const s=await settings();if(!s.indexWeb||!item.url)return;const src=sourceFor(item.url);if(src!=="web"&&!s.indexAi)return;await dbPut({id:"history:"+item.id,source:src,title:item.title||item.url,url:item.url,text:"",visitedAt:item.lastVisitTime||Date.now(),kind:"history"})});
+chrome.history.onVisited.addListener(async item=>{const s=await settings();if(!item.url)return;const src=sourceFor(item.url);if(src==="web"&&!s.indexWeb)return;if(src!=="web"&&!s.indexAi)return;await dbPut({id:"history:"+item.id,source:src,title:item.title||item.url,url:item.url,text:"",visitedAt:item.lastVisitTime||Date.now(),kind:"history"})});
 chrome.runtime.onMessage.addListener((m,sender,send)=>{(async()=>{
  const st=await settings();
  if(m.type==="getState")return{ok:true,settings:st,count:await dbCount()};
