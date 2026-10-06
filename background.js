@@ -20,7 +20,7 @@ chrome.history.onVisited.addListener(async item=>{const s=await settings();if(!i
 chrome.runtime.onMessage.addListener((m,sender,send)=>{(async()=>{
 const st=await settings();
 if(m.type==="getState")return{ok:true,settings:st,count:await dbCount(),readLaterCount:await dbReadLaterCount(),geminiKeyPresent:!!(await getGeminiKey())};
-if(m.type==="getIndexPolicy")return{ok:true,active:true,delaySec:st.webIndexDelaySec};
+if(m.type==="getIndexPolicy")return{ok:true,active:m.source==="web"?st.indexWebContent:st.indexAi,delaySec:st.webIndexDelaySec};
 if(m.type==="getGeminiKey")return{ok:true,key:await getGeminiKey()};
 if(m.type==="setGeminiKey"){const key=String(m.key||"").trim();if(key)await chrome.storage.session.set({geminiKey:key});else await chrome.storage.session.remove("geminiKey");return{ok:true}};
 if(m.type==="saveSettings"){const ns={...st,...m.settings};delete ns.geminiKey;ns.webIndexDelaySec=Math.min(120,Math.max(5,Number(ns.webIndexDelaySec)||25));await chrome.storage.local.set({settings:ns});if(ns.indexWebContent){if(!(await chrome.permissions.contains({origins:["http://*/*","https://*/*"]})))throw Error("נדרשת הרשאת אתרים");await ensureWebScript(true)}else await ensureWebScript(false);if(!ns.geminiEnabled)await chrome.storage.session.remove("geminiKey");return{ok:true}};
