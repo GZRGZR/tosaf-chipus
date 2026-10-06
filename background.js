@@ -1,91 +1,28 @@
-const DEFAULTS = {
-  docs: {},
-  settings: {
-    indexWeb: true,
-    indexAi: true,
-    privateMode: true,
-    geminiEnabled: false,
-    geminiKey: ""
-  }
-};
-
-async function getState() {
-  const s = await chrome.storage.local.get(DEFAULTS);
-  return { docs: s.docs || {}, settings: { ...DEFAULTS.settings, ...(s.settings || {}) } };
-}
-async function saveDocs(docs) { await chrome.storage.local.set({ docs }); }
-
-function sourceFor(url="") {
-  try {
-    const h = new URL(url).hostname;
-    if (h.includes("chatgpt.com") || h.includes("chat.openai.com")) return "chatgpt";
-    if (h.includes("gemini.google.com")) return "gemini";
-    if (h.includes("aistudio.google.com")) return "aistudio";
-    if (h.includes("claude.ai")) return "claude";
-  } catch {}
-  return "web";
-}
-
-chrome.runtime.onInstalled.addListener(async () => {
-  const cur = await chrome.storage.local.get(DEFAULTS);
-  await chrome.storage.local.set({
-    settings: { ...DEFAULTS.settings, ...(cur.settings || {}) },
-    docs: cur.docs || {}
-  });
-});
-
-chrome.commands.onCommand.addListener(async command => {
-  if (command !== "open-search") return;
-  try { await chrome.sidePanel.open({ windowId: (await chrome.windows.getCurrent()).id }); } catch {}
-});
-
-chrome.history.onVisited.addListener(async item => {
-  const { settings } = await getState();
-  if (!settings.indexWeb || !item.url) return;
-  const source = sourceFor(item.url);
-  if (source !== "web" && !settings.indexAi) return;
-  const docs = (await getState()).docs;
-  const id = "history:" + item.id + ":" + item.lastVisitTime;
-  docs[id] = {
-    id, source, title: item.title || item.url, url: item.url,
-    text: "", visitedAt: item.lastVisitTime || Date.now(), imported: true
-  };
-  await saveDocs(docs);
-});
-
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  (async () => {
-    if (msg.type === "saveDoc") {
-      const { settings } = await getState();
-      if (sender.tab?.incognito || msg.incognito) return { ok:false, reason:"incognito" };
-      if (msg.source !== "web" && !settings.indexAi) return { ok:false };
-      if (msg.source === "web" && !settings.indexWeb) return { ok:false };
-      const docs = (await getState()).docs;
-      const id = msg.doc.id || (msg.source + ":" + msg.doc.url);
-      docs[id] = { ...msg.doc, id, updatedAt: Date.now() };
-      await saveDocs(docs);
-      return { ok:true };
-    }
-    if (msg.type === "getState") return await getState();
-    if (msg.type === "saveSettings") {
-      const cur = await getState();
-      await chrome.storage.local.set({ settings:{...cur.settings,...msg.settings} });
-      return { ok:true };
-    }
-    if (msg.type === "deleteDoc") {
-      const st = await getState(); delete st.docs[msg.id]; await saveDocs(st.docs); return {ok:true};
-    }
-    if (msg.type === "clear") {
-      await chrome.storage.local.set({docs:{}}); return {ok:true};
-    }
-    if (msg.type === "searchHistory") {
-      const items = await chrome.history.search({text: msg.text || "", startTime: msg.startTime, endTime: msg.endTime, maxResults: 10000});
-      return {ok:true, items};
-    }
-    if (msg.type === "deleteHistory") {
-      await chrome.history.deleteUrl({url: msg.url}); return {ok:true};
-    }
-    return {ok:false};
-  })().then(sendResponse).catch(e=>sendResponse({ok:false,error:String(e)}));
-  return true;
-});
+import{dbPut,dbPutMany,dbDelete,dbClear,dbAll,dbCount}from"./db.js";
+const DEFAULT={indexWeb:true,indexAi:true,indexWebContent:false,geminiEnabled:false,geminiKey:"",importAccount:""};
+const AI=["chatgpt","gemini","aistudio","claude"];
+function sourceFor(url=""){try{const h=new URL(url).hostname;if(/chatgpt\\.com|chat\\.openai\\.com/.test(h))return"chatgpt";if(/gemini\\.google\\.com/.test(h))return"gemini";if(/aistudio\\.google\\.com/.test(h))return"aistudio";if(/claude\\.ai/.test(h))return"claude"}catch{}return"web"}
+async function settings(){const x=await chrome.storage.local.get({settings:DEFAULT});return{...DEFAULT,...x.settings}}
+async function ensureWebScript(enable){try{const ids=(await chrome.scripting.getRegisteredContentScripts()).map(x=>x.id);if(enable&&!ids.includes("web-indexer")){await chrome.scripting.registerContentScripts([{id:"web-indexer",matches:["http://*/*","https://*/*"],js:["content.js"],runAt:"document_idle",persistAcrossSessions:true}])}if(!enable&&ids.includes("web-indexer"))await chrome.scripting.unregisterContentScripts({ids:["web-indexer"]})}catch(e){console.warn("web script",e)}}
+chrome.runtime.onInstalled.addListener(async()=>{const s=await settings();await chrome.storage.local.set({settings:s});await ensureWebScript(s.indexWebContent)});
+chrome.runtime.onStartup.addListener(async()=>{const s=await settings();await ensureWebScript(s.indexWebContent)});
+chrome.commands.onCommand.addListener(async c=>{if(c==="open-search")try{await chrome.sidePanel.open({windowId:(await chrome.windows.getCurrent()).id})}catch{}});
+chrome.history.onVisited.addListener(async item=>{const s=await settings();if(!s.indexWeb||!item.url)return;const src=sourceFor(item.url);if(src!=="web"&&!s.indexAi)return;await dbPut({id:"history:"+item.id,source:src,title:item.title||item.url,url:item.url,text:"",visitedAt:item.lastVisitTime||Date.now(),kind:"history"})});
+chrome.runtime.onMessage.addListener((m,sender,send)=>{(async()=>{
+ const st=await settings();
+ if(m.type==="getState")return{ok:true,settings:st,count:await dbCount()};
+ if(m.type==="saveSettings"){const ns={...st,...m.settings};await chrome.storage.local.set({settings:ns});if(ns.indexWebContent){if(!(await chrome.permissions.contains({origins:["http://*/*","https://*/*"]})))throw Error("נדרשת הרשאת אתרים");await ensureWebScript(true)}else await ensureWebScript(false);return{ok:true}}
+ if(m.type==="requestWebPermission"){const ok=await chrome.permissions.request({origins:["http://*/*","https://*/*"]});if(ok)await ensureWebScript(true);return{ok}}
+ if(m.type==="saveDoc"){if(sender.tab?.incognito||m.incognito)return{ok:false,reason:"incognito"};if(AI.includes(m.doc.source)&&!st.indexAi)return{ok:false};if(m.doc.source==="web"&&!st.indexWebContent)return{ok:false};const d={...m.doc,text:String(m.doc.text||"").slice(0,200000),updatedAt:Date.now()};await dbPut(d);return{ok:true}}
+ if(m.type==="deleteDoc"){await dbDelete(m.id);return{ok:true}}
+ if(m.type==="clear"){await dbClear();return{ok:true}}
+ if(m.type==="exportIndex")return{ok:true,docs:await dbAll()};
+ if(m.type==="importDocs"){const docs=Array.isArray(m.docs)?m.docs:[];await dbPutMany(docs);return{ok:true,added:docs.length}}
+ if(m.type==="importHistory"){if(!st.indexWeb)return{ok:false,error:"הפעל אינדקס היסטוריה"};const items=await chrome.history.search({text:"",startTime:0,maxResults:100000});const docs=items.filter(x=>x.url).map(x=>({id:"history:"+x.id,source:sourceFor(x.url),title:x.title||x.url,url:x.url,text:"",visitedAt:x.lastVisitTime||Date.now(),kind:"history"}));await dbPutMany(docs);return{ok:true,added:docs.length}}
+ if(m.type==="deleteHistory"){await chrome.history.deleteUrl({url:m.url});await dbDelete(m.id).catch(()=>{});return{ok:true}}
+ if(m.type==="search"){let q=String(m.query||"").trim();let smart=false;if(m.smart&&st.geminiEnabled&&st.geminiKey){try{q=await expand(q,st.geminiKey);smart=true}catch(e){console.warn(e)}}const p=parse(q),src=m.source||"";const all=await dbAll();const r=all.filter(d=>!src||d.source===src).map(d=>({...d,_score:score(d,p)})).filter(d=>d._score>0).sort((a,b)=>b._score-a._score||((b.visitedAt||0)-(a.visitedAt||0))).slice(0,100);return{ok:true,results:r,smart}}
+ return{ok:false,error:"unknown message"}
+})().then(send).catch(e=>send({ok:false,error:String(e)}));return true});
+function parse(q){const phrases=[...q.matchAll(/"([^"]+)"/g)].map(x=>x[1].toLowerCase());const neg=[...q.matchAll(/(?:^|\\s)-(?:"([^"]+)"|(\\S+))/g)].map(x=>(x[1]||x[2]).toLowerCase());const filters={source:"",account:"",after:0,before:Infinity};const clean=q.replace(/"[^"]+"/g," ").replace(/(?:^|\\s)(?:-?\\S+:\\S+)/g," ");for(const m of q.matchAll(/(?:^|\\s)in:(chatgpt|gemini|aistudio|claude|web)/gi))filters.source=m[1].toLowerCase();for(const m of q.matchAll(/account:"([^"]+)"|account:(\\S+)/gi))filters.account=(m[1]||m[2]).toLowerCase();for(const m of q.matchAll(/after:(\\d{4}-\\d{2}-\\d{2})/gi))filters.after=Date.parse(m[1]);for(const m of q.matchAll(/before:(\\d{4}-\\d{2}-\\d{2})/gi))filters.before=Date.parse(m[1])+86400000;const terms=clean.toLowerCase().split(/\\s+/).filter(x=>x.length>1&&!x.startsWith("-"));return{phrases,neg,terms,filters}}
+function score(d,p){const when=d.visitedAt||d.updatedAt||0,hay=(d.title+"\\n"+d.text+"\\n"+d.url).toLowerCase();if(p.filters.source&&d.source!==p.filters.source)return 0;if(p.filters.account&&!(d.account||"").toLowerCase().includes(p.filters.account))return 0;if(when&&when<p.filters.after)return 0;if(when&&when>=p.filters.before)return 0;if(p.phrases.some(x=>!hay.includes(x))||p.neg.some(x=>hay.includes(x)))return 0;let n=0;for(const t of p.terms)if(hay.includes(t))n+=Math.min(10,t.length);if(p.terms.length&&!n)return 0;if(p.terms.some(t=>(d.title||"").toLowerCase().includes(t)))n+=8;return n||1}
+async function expand(q,key){const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":key},body:JSON.stringify({contents:[{parts:[{text:"Return JSON only as {\\"queries\\":[string]}. Expand this search query with useful Hebrew/English synonyms and related technical terms. Do not answer it. Query: "+q}]}],generationConfig:{responseMimeType:"application/json"}})});if(!r.ok)throw Error("Gemini HTTP "+r.status);const j=await r.json(),t=j.candidates?.[0]?.content?.parts?.[0]?.text||"{}";let x={};try{x=JSON.parse(t)}catch{}return[q,...(Array.isArray(x.queries)?x.queries.slice(0,8):[])].join(" ")}
