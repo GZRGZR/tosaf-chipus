@@ -19,7 +19,7 @@ chrome.runtime.onMessage.addListener((m,sender,send)=>{(async()=>{
  if(m.type==="clear"){await dbClear();return{ok:true}}
  if(m.type==="exportIndex")return{ok:true,docs:await dbAll()};
  if(m.type==="importDocs"){const docs=Array.isArray(m.docs)?m.docs:[];await dbPutMany(docs);return{ok:true,added:docs.length}}
- if(m.type==="importHistory"){if(!st.indexWeb)return{ok:false,error:"הפעל אינדקס היסטוריה"};const items=await chrome.history.search({text:"",startTime:0,maxResults:100000});const docs=items.filter(x=>x.url).map(x=>({id:"history:"+x.id,source:sourceFor(x.url),title:x.title||x.url,url:x.url,text:"",visitedAt:x.lastVisitTime||Date.now(),kind:"history"}));await dbPutMany(docs);return{ok:true,added:docs.length}}
+ if(m.type==="importHistory"){if(!st.indexWeb&&!st.indexAi)return{ok:false,error:"הפעל לפחות אינדקס אחד"};const items=await chrome.history.search({text:"",startTime:0,maxResults:100000});const docs=items.filter(x=>x.url).map(x=>({id:"history:"+x.id,source:sourceFor(x.url),title:x.title||x.url,url:x.url,text:"",visitedAt:x.lastVisitTime||Date.now(),kind:"history"})).filter(x=>(x.source==="web"?st.indexWeb:st.indexAi));await dbPutMany(docs);return{ok:true,added:docs.length}}
  if(m.type==="deleteHistory"){await chrome.history.deleteUrl({url:m.url});await dbDelete(m.id).catch(()=>{});return{ok:true}}
  if(m.type==="search"){let q=String(m.query||"").trim();let smart=false;if(m.smart&&st.geminiEnabled&&st.geminiKey){try{q=await expand(q,st.geminiKey);smart=true}catch(e){console.warn(e)}}const p=parse(q),src=m.source||"";const r=await dbSearch(d=>{if(src&&d.source!==src)return 0;return score(d,p)},100);return{ok:true,results:r,smart}}
  return{ok:false,error:"unknown message"}
