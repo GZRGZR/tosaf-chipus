@@ -1,71 +1,71 @@
-# Tosaf Chipus – AI Universal Search v2.3.0
+# Tosaf Chipus – AI Universal Search v2.3.1
 
-תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובאתרי Web.
+תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרי Web.
 
-## v2.2.0
-- החיפוש המקומי משתמש באינדקס tokens של IndexedDB במקום לסרוק את כל הרשומות לכל שאילתה.
-- החיפוש תומך גם בהתאמות prefix יעילות.
-- background.js מכיל handler ממשי ל-search.
-- מפתח Gemini נשמר ב-chrome.storage.session בלבד, ואי אפשר לקרוא אותו דרך הודעה.
-- פעולות privileged מוגבלות ל-UI של התוסף.
-- content.js ו-web-content.js אוחדו לקובץ אחד; הקובץ הישן הוסר.
-- Web indexing נשאר opt-in ודחוי כברירת מחדל ב-25 שניות.
-- ננקטת הגבלת קצב של עד 20 פעולות AI בדקה.
-- Gemini משתמש ב-gemini-3.5-flash-lite, מודל GA חסכוני עם Free Tier לפי תיעוד Google הנוכחי.
-- הרחבת שאילתה, דירוג תוצאות, ויצירת מטא-דאטה הם פעולות AI נפרדות.
-- Prompt injection מצומצם באמצעות system instruction, סימון התוכן כ-untrusted data, וצמצום המידע שנשלח.
+## מה התוסף עושה
 
-## בחירת מודל Gemini
-התיעוד הרשמי הנוכחי של Google מפרט את gemini-3.5-flash-lite כמודל Flash-Lite זמין ו-GA, ומציג לו Free Tier. Google מציגה את gemini-flash-latest כ-alias ל-Flash הרגיל; לא מסתמכים על alias לא מתועד בשם gemini-flash-lite-latest. מודלי Gemini 2.0 Flash-Lite נסגרו ב-1 ביוני 2026. לכן התוסף משתמש במזהה היציב והמפורש gemini-3.5-flash-lite.
+- חיפוש מאוחד ב־ChatGPT, Gemini, Google AI Studio, Claude, בהיסטוריית Chrome ובתוכן Web שנבחר לאינדוקס.
+- חיפוש מקומי באמצעות IndexedDB ואינדקס tokens, כולל prefix matching.
+- סינון לפי מקור, חשבון ותאריכים, וכן ביטויים במרכאות ושלילה.
+- אפשרות להרחבת שאילתה באמצעות Gemini, בלי לשלוח את האינדקס המקומי ל־Gemini.
+- אפשרות נפרדת לדירוג מחדש של עד 20 תוצאות מובילות באמצעות Gemini.
+- שמירת אתרים ל־Read Later באופן מקומי.
+- ייבוא היסטוריות/ייצואים רשמיים כאשר הם זמינים.
 
-## Privacy
-- אין cookies, tokens או endpoints פרטיים של שירותי AI.
-- אין eval, remote code, ספריות צד שלישי או telemetry.
-- Incognito אינו נשמר.
-- תוכן Web רגיל דורש הרשאת אתר אופציונלית.
-- דומיינים רגישים נפוצים של דואר, בנקים, תשלומים ושירותי בריאות מוחרגים מאיסוף תוכן.
-- פתיחת תפריט התוסף אינה קוראת את תוכן הדף.
-- תוכן נשלח ל-Gemini רק לאחר פעולה מפורשת של המשתמש.
-- בדירוג תוצאות נשלחים עד 20 תוצאות בלבד, עם תקצירים ומטא-דאטה מוגבלים.
-- ביצירת מטא-דאטה נשלחים כתובת, כותרת ועד 35,000 תווים של טקסט גלוי מהדף.
-- מפתח Gemini אינו מוחזר ל-Side Panel או לדף Web כלשהו.
+## פרטיות ואבטחה
 
-## Features
-### Site metadata
-לכל דומיין נשמרים שם ותיאור. אפשר לערוך אותם מתפריט סמל התוסף. התיאור מוגבל ל-500 תווים ומשמש לשיפור החיפוש. כפתור AI מייצר שם ותיאור באורך של כ-30 מילים ומוסיף מילות חיפוש ומילים נרדפות.
+- האינדקס נשמר מקומית ב־IndexedDB.
+- אין cookies, tokens, endpoints פרטיים, telemetry, eval או remote code.
+- צ'אטים במצב Incognito אינם נשמרים.
+- אינדוקס תוכן Web רגיל הוא opt-in ודחוי; ברירת המחדל היא 25 שניות וניתן לשנות זאת ב־Options.
+- דומיינים רגישים נפוצים של דואר, בנקים, תשלומים ושירותי בריאות מוחרגים מאיסוף תוכן אוטומטי.
+- אותה מדיניות פרטיות נאכפת גם ב־Service Worker, כך שלא ניתן לעקוף אותה באמצעות "הכנס לאינדקס עכשיו".
+- לפני שליחת תוכן ל־Gemini עבור יצירת מטא־דאטה, ה־Service Worker בודק שוב את מדיניות האתר.
+- מפתח Gemini נשמר ב־chrome.storage.session ואינו מוחזר בהודעות כערך גולמי; ה־UI מקבל רק אינדיקציה אם קיים מפתח.
+- תוכן הדף נשלח ל־Gemini רק בעקבות פעולה מפורשת של המשתמש עבור יצירת מטא־דאטה. בדירוג תוצאות נשלחים לכל היותר 20 תוצאות עם מידע מוגבל.
+- השימוש ב־Gemini מוגבל לעד 20 פעולות בדקה.
+- הטקסט שמגיע מהדף ומהתוצאות מוגדר כ־untrusted data בהנחיות המודל, כדי לצמצם prompt injection; אין בכך הבטחה מוחלטת נגד מניפולציות של תוכן עוין.
 
-### Read Later
-אפשר לשמור URL ברשימה מקומית של לקרוא אח״כ ולסגור את הלשונית מיד.
+## חיפוש וביצועים
 
-### Search
-תומך במילים, ביטויים במרכאות, שלילה, in:, account:, after: ו-before:. תוצאות יכולות להיות מדורגות מחדש עם AI, אך פעולה זו כבויה כברירת מחדל.
+החיפוש משתמש באינדקס tokens ב־IndexedDB במקום בסריקה מלאה בכל שאילתה. לכל מסמך נשמרים לכל היותר 1,000 tokens ייחודיים. חיפוש שאין בו מונחי טקסט מבצע fallback לסריקה מלאה (למשל במקרה של פילטרים בלבד); כאשר יש מונחי חיפוש אך אין התאמות באינדקס, אין סריקה מלאה מיותרת.
 
-### Web delay
-תוכן Web רגיל נכנס לאינדקס התוכן אחרי 25 שניות כברירת מחדל. אפשר לבחור זמן אחר ב-Options. היסטוריית Chrome עצמה היא ערוץ נפרד.
+## מטא־דאטה לאתרים
+
+לכל דומיין אפשר לשמור שם ותיאור. התיאור נשמר מקומית ומשמש לשיפור החיפוש.
+
+כפתור ה־AI יכול להציע שם ותיאור על סמך כתובת האתר, הכותרת ועד 35,000 תווים לכל היותר של טקסט גלוי. הפעולה מתבצעת רק לאחר לחיצה מפורשת.
+
+## Read Later
+
+אפשר לשמור כתובת ברשימת "לקרוא אחר כך" ולסגור מיד את הלשונית. הרשימה מקומית ואינה כוללת את גוף הדף.
 
 ## Import
-ChatGPT: Data Controls → Export Data → conversations.json.
-Claude: Settings → Privacy → Export data.
-Gemini: Google Takeout → My Activity → Gemini Apps.
-AI Studio: JSON/JSONL במבנים נפוצים. פורמט עתידי עשוי להשתנות.
 
-## Install
-1. פתח chrome://extensions.
+- ChatGPT: Data Controls → Export Data.
+- Claude: Settings → Privacy → Export data.
+- Gemini: Google Takeout → My Activity → Gemini Apps.
+- Google AI Studio: ניתן לייבא קבצים בפורמטים נפוצים כאשר המבנה תואם.
+
+פורמט הייצוא של השירותים עשוי להשתנות עם הזמן; יש לבדוק את המבנה בפועל לפני ייבוא גדול.
+
+## התקנה
+
+1. פתח `chrome://extensions`.
 2. הפעל Developer mode.
-3. Load unpacked.
+3. לחץ Load unpacked.
 4. בחר את תיקיית המאגר.
-5. פתח Options.
-קיצור לחיפוש: Ctrl+Shift+K.
+5. פתח את Options והפעל את האפשרויות הרצויות.
 
-## Security validation
-כל קובצי ה-JavaScript נבדקים ל-syntax לפני סגירת גרסה. בדיקה זו אינה מחליפה בדיקת runtime מלאה ב-Chrome נקייה.
+קיצור מקשים לפתיחת החיפוש: Ctrl+Shift+K.
 
-## License
-MIT
+## בדיקת אבטחה
 
-## v2.3.0 fixes
-- Fixed extension-UI authorization so Options pages opened as tabs are accepted.
-- Removed the raw Gemini API-key getter from runtime messaging; the key is never returned to UI code.
-- Centralized sensitive-site blocking in the background worker and the popup checks policy before extracting page text for AI.
-- Added a token index capped at 1000 unique tokens per document, with full-scan fallback when no indexed candidate exists.
-- Unified AI and Web content indexing in content.js.
+קבצי JavaScript נבדקים ל־syntax לפני שחרור. בדיקה זו אינה תחליף לבדיקת runtime מלאה ב־Chrome נקייה או לבדיקת חדירה מקצועית.
+
+## גרסה 2.3.1
+
+- תוקנה קריאה ישנה ל־`blockedUrl` שהייתה מפילה את כפתור יצירת המטא־דאטה בפופאפ.
+- `saveDoc` ב־Service Worker אוכף חסימת דומיינים רגישים גם כאשר המשתמש מפעיל אינדוקס ידני.
+- `indexNow` בודק את מדיניות האתר לפני שליפת תוכן הדף.
+- `dbSearch` אינו מבצע סריקת fallback מלאה כאשר מונחי החיפוש קיימים אך אין להם התאמות באינדקס.
