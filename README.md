@@ -1,70 +1,64 @@
-# Tosaf Chipus – AI Universal Search v2.0.1
+# Tosaf Chipus – AI Universal Search v2.2.0
 
-תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI ובהיסטוריית הגלישה.
+תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובאתרי Web.
 
-## v2.0.1
-- Gemini API key moved to Chrome session storage; it is not persisted in the extension's permanent storage and is not exposed to the Side Panel.
-- DOM observation is throttled and attached to the relevant content container instead of the entire document root.
+## v2.2.0
+- החיפוש המקומי משתמש באינדקס tokens של IndexedDB במקום לסרוק את כל הרשומות לכל שאילתה.
+- החיפוש תומך גם בהתאמות prefix יעילות.
+- background.js מכיל handler ממשי ל-search.
+- מפתח Gemini נשמר ב-chrome.storage.session בלבד, ואי אפשר לקרוא אותו דרך הודעה.
+- פעולות privileged מוגבלות ל-UI של התוסף.
+- content.js ו-web-content.js אוחדו לקובץ אחד; הקובץ הישן הוסר.
+- Web indexing נשאר opt-in ודחוי כברירת מחדל ב-25 שניות.
+- ננקטת הגבלת קצב של עד 20 פעולות AI בדקה.
+- Gemini משתמש ב-gemini-3.5-flash-lite, מודל GA חסכוני עם Free Tier לפי תיעוד Google הנוכחי.
+- הרחבת שאילתה, דירוג תוצאות, ויצירת מטא-דאטה הם פעולות AI נפרדות.
+- Prompt injection מצומצם באמצעות system instruction, סימון התוכן כ-untrusted data, וצמצום המידע שנשלח.
 
-## v2.0
-- IndexedDB במקום אחסון כל האינדקס ב-storage.
-- החיפוש מתבצע ב-Service Worker ומחזיר עד 100 תוצאות.
-- ייבוא ברמת הודעה מ-ChatGPT, Claude, Gemini ו-AI Studio.
-- שדה account/profile לייבוא כדי להבדיל בין כמה חשבונות.
-- ייבוא היסטוריית Chrome קיימת ומעקב אחרי ביקורים חדשים.
-- חיפוש עם in:, account:, after:, before:, ביטויים במרכאות ומילות שלילה.
-- Gemini הוא אופציונלי: הרחבת שאילתה שולחת רק את השאילתה; דירוג תוצאות ויצירת מטא־דאטה הם פעולות נפרדות, ורצות רק לאחר פעולה מפורשת.
-- קריאת תוכן Web רגיל היא אופציונלית ודורשת הרשאת אתרים בזמן ההפעלה.
+## בחירת מודל Gemini
+התיעוד הרשמי הנוכחי של Google מפרט את gemini-3.5-flash-lite כמודל Flash-Lite זמין ו-GA, ומציג לו Free Tier. Google מציגה את gemini-flash-latest כ-alias ל-Flash הרגיל; לא מסתמכים על alias לא מתועד בשם gemini-flash-lite-latest. מודלי Gemini 2.0 Flash-Lite נסגרו ב-1 ביוני 2026. לכן התוסף משתמש במזהה היציב והמפורש gemini-3.5-flash-lite.
+
+## Privacy
+- אין cookies, tokens או endpoints פרטיים של שירותי AI.
+- אין eval, remote code, ספריות צד שלישי או telemetry.
 - Incognito אינו נשמר.
-- אין endpoints פרטיים, cookies, tokens, eval או remote code.
-- אין ספריות צד שלישי ואין telemetry.
+- תוכן Web רגיל דורש הרשאת אתר אופציונלית.
+- דומיינים רגישים נפוצים של דואר, בנקים, תשלומים ושירותי בריאות מוחרגים מאיסוף תוכן.
+- פתיחת תפריט התוסף אינה קוראת את תוכן הדף.
+- תוכן נשלח ל-Gemini רק לאחר פעולה מפורשת של המשתמש.
+- בדירוג תוצאות נשלחים עד 20 תוצאות בלבד, עם תקצירים ומטא-דאטה מוגבלים.
+- ביצירת מטא-דאטה נשלחים כתובת, כותרת ועד 35,000 תווים של טקסט גלוי מהדף.
+- מפתח Gemini אינו מוחזר ל-Side Panel או לדף Web כלשהו.
 
-## פרטיות ואבטחה
-ההרשאות לאתרי Web רגילים הן optional host permissions, כך שאפשר לאשר אותן רק אם מפעילים אינדוקס תוכן Web. היסטוריית Chrome יכולה להיאסף בלי לקרוא את תוכן הדפים.
+## Features
+### Site metadata
+לכל דומיין נשמרים שם ותיאור. אפשר לערוך אותם מתפריט סמל התוסף. התיאור מוגבל ל-500 תווים ומשמש לשיפור החיפוש. כפתור AI מייצר שם ותיאור באורך של כ-30 מילים ומוסיף מילות חיפוש ומילים נרדפות.
 
-מפתח Gemini נשמר ב-session storage בלבד, רק בתוך סשן Chrome הנוכחי, ואינו נשמר ב-storage הקבוע של התוסף. הוא גם אינו מוחזר ל-Side Panel; רק Service Worker קורא אותו בעת בקשת Gemini. לכן לאחר סגירת Chrome יש להזין אותו מחדש.
+### Read Later
+אפשר לשמור URL ברשימה מקומית של לקרוא אח״כ ולסגור את הלשונית מיד.
 
-## מקורות ייבוא
-ChatGPT: OpenAI מציינת שייצוא הנתונים כולל את היסטוריית הצ'אטים ובייצוא רגיל ניתן למצוא conversations.json.
+### Search
+תומך במילים, ביטויים במרכאות, שלילה, in:, account:, after: ו-before:. תוצאות יכולות להיות מדורגות מחדש עם AI, אך פעולה זו כבויה כברירת מחדל.
 
-Claude: Anthropic מספקת Settings → Privacy → Export data, והייצוא כולל conversation data.
+### Web delay
+תוכן Web רגיל נכנס לאינדקס התוכן אחרי 25 שניות כברירת מחדל. אפשר לבחור זמן אחר ב-Options. היסטוריית Chrome עצמה היא ערוץ נפרד.
 
-Gemini Apps: Google מספקת הורדה דרך Google Takeout; יש לבחור My Activity ואז Gemini Apps.
+## Import
+ChatGPT: Data Controls → Export Data → conversations.json.
+Claude: Settings → Privacy → Export data.
+Gemini: Google Takeout → My Activity → Gemini Apps.
+AI Studio: JSON/JSONL במבנים נפוצים. פורמט עתידי עשוי להשתנות.
 
-AI Studio: אין להסתמך על JSON יחיד וקבוע; המתאם מקבל כמה מבנים נפוצים. אם פורמט מסוים לא נקלט, אפשר לשמור את הקובץ ולבצע התאמה נוספת בלי גישה לחשבון עצמו.
+## Install
+1. פתח chrome://extensions.
+2. הפעל Developer mode.
+3. Load unpacked.
+4. בחר את תיקיית המאגר.
+5. פתח Options.
+קיצור לחיפוש: Ctrl+Shift+K.
 
-## התקנה
-1. הורד/Clone את המאגר.
-2. פתח chrome://extensions.
-3. הפעל Developer mode.
-4. Load unpacked ובחר את התיקייה.
-5. פתח Options והגדר את האפשרויות.
+## Security validation
+כל קובצי ה-JavaScript נבדקים ל-syntax לפני סגירת גרסה. בדיקה זו אינה מחליפה בדיקת runtime מלאה ב-Chrome נקייה.
 
-Ctrl+Shift+K פותח את החיפוש.
-
-## ייבוא ChatGPT
-ב-ChatGPT: Settings → Data Controls → Export Data. חלץ את ZIP וחפש conversations.json.
-
-## ייבוא Claude
-Settings → Privacy → Export data. לאחר קבלת הייצוא בחר את קובץ ה-JSON.
-
-## ייבוא Gemini
-Google Takeout → My Activity → Gemini Apps ובחר JSON.
-
-## עקרון אבטחה
-התוסף אינו מנסה להיכנס מאחורי הקלעים לחשבונות ואינו משתמש ב-endpoints פרטיים. שיחות ישנות מגיעות מ-export שהמשתמש מספק; שיחות שנפתחות בדפדפן נאספות רק מהתוכן שמוצג בדף.
-
-התוסף שומר טקסט כטקסט ואינו מריץ HTML/JavaScript מתוך קובצי ייבוא.
-
-## רישיון
+## License
 MIT
-
-
-## v2.1.0 additions
-- Per-site name and optional search description, editable from the extension action popup.
-- Optional Gemini-generated site metadata with about 30 Hebrew words and search keywords.
-- Read Later local list with save-and-close action.
-- Regular Web content indexing defaults to 25 seconds and is configurable.
-- Optional AI ranking of up to 20 top results; only limited metadata/snippets are sent.
-- Opening the popup itself does not read page content.
-- Gemini key remains session-only.
