@@ -14,7 +14,7 @@ function siteKeyFor(url=""){try{return new URL(url).hostname.toLowerCase().repla
 function sourceFor(url=""){try{const h=new URL(url).hostname;if(/chatgpt\.com|chat\.openai\.com/.test(h))return"chatgpt";if(/gemini\.google\.com/.test(h))return"gemini";if(/aistudio\.google\.com/.test(h))return"aistudio";if(/claude\.ai/.test(h))return"claude"}catch{}return"web"}
 function isBlockedSite(url){const k=siteKeyFor(url);return BLOCKED_CONTENT_HOSTS.some(x=>k===x||k.endsWith("."+x))}
 async function settings(){const x=await chrome.storage.local.get({settings:DEFAULT});const s={...DEFAULT,...x.settings};s.webIndexDelaySec=Math.min(120,Math.max(5,Number(s.webIndexDelaySec)||25));return s}
-function isExtensionUi(sender){return !!sender.url?.startsWith("chrome-extension://"+chrome.runtime.id+"/")&&!sender.tab}
+function isExtensionUi(sender){return !!sender.url?.startsWith(chrome.runtime.getURL(""))}
 function requireUi(sender){if(!isExtensionUi(sender))throw Error("Unauthorized")}
 async function getGeminiKey(){const x=await chrome.storage.session.get({geminiKey:""});return x.geminiKey||""}
 async function migrateOldKey(){const x=await chrome.storage.local.get({settings:DEFAULT});const s={...DEFAULT,...x.settings};if(x.settings?.geminiKey){await chrome.storage.session.set({geminiKey:x.settings.geminiKey});delete s.geminiKey;await chrome.storage.local.set({settings:s})}}
