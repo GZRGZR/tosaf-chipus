@@ -1,6 +1,10 @@
-# Tosaf Chipus – AI Universal Search v2.0
+# Tosaf Chipus – AI Universal Search v2.0.1
 
 תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI ובהיסטוריית הגלישה.
+
+## v2.0.1
+- Gemini API key moved to Chrome session storage; it is not persisted in the extension's permanent storage and is not exposed to the Side Panel.
+- DOM observation is throttled and attached to the relevant content container instead of the entire document root.
 
 ## v2.0
 - IndexedDB במקום אחסון כל האינדקס ב-storage.
