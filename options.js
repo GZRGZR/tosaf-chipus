@@ -1,0 +1,15 @@
+const $=x=>document.getElementById(x);
+let state={docs:{},settings:{}};
+chrome.runtime.sendMessage({type:"getState"}).then(s=>{state=s;$("ai").checked=s.settings.indexAi;$("web").checked=s.settings.indexWeb;$("gem").checked=s.settings.geminiEnabled;$("key").value=s.settings.geminiKey||""});
+async function save(){state.settings={...state.settings,indexAi:$("ai").checked,indexWeb:$("web").checked,geminiEnabled:$("gem").checked,geminiKey:$("key").value};await chrome.runtime.sendMessage({type:"saveSettings",settings:state.settings});}
+["ai","web","gem","key"].forEach(x=>$(x).addEventListener("change",save));
+$("export").onclick=()=>{const b=new Blob([JSON.stringify(state.docs,null,2)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="ai-universal-search-index.json";a.click()};
+$("clear").onclick=async()=>{if(confirm("למחוק הכול?")){await chrome.runtime.sendMessage({type:"clear"});location.reload()}};
+$("import").onclick=async()=>{const files=[...$("files").files];if(!files.length)return;let added=0;for(const f of files){try{const raw=JSON.parse(await f.text());const kind=$("kind").value==="auto"?detect(raw,f.name):$("kind").value;const rows=parseExport(raw,kind);for(const d of rows){state.docs[d.id]=d;added++}}catch(e){console.error(f.name,e)}}await chrome.storage.local.set({docs:state.docs});$("status").textContent="יובאו "+added+" רשומות. פורמטים שלא זוהו ידרשו התאמה ידנית.";};
+function detect(x,name){const n=name.toLowerCase();if(n.includes("conversation"))return"chatgpt";if(x?.conversations)return"chatgpt";if(x?.chat_messages||x?.messages)return"claude";if(x?.response||x?.prompt||x?.turns)return"gemini";return"aistudio"}
+function parseExport(x,kind){let out=[];
+const push=(title,url,text,id)=>{if(!text)return;out.push({id:"import:"+kind+":"+id,source:kind,title:title||"שיחה מיובאת",url:url||"about:blank",text:String(text).slice(0,300000),visitedAt:Date.now(),imported:true})};
+if(kind==="chatgpt"){const cs=Array.isArray(x)?x:(x.conversations||[]);for(const c of cs){let parts=[];for(const v of Object.values(c.mapping||{})){const m=v?.message;if(m){const p=m.content?.parts;if(Array.isArray(p))parts.push(p.filter(z=>typeof z==="string").join("\n"))}}push(c.title,"https://chatgpt.com/c/"+(c.id||""),parts.join("\n"),c.id||Math.random())}}
+else if(kind==="claude"){const cs=Array.isArray(x)?x:(x.conversations||x.chats||[]);for(const c of cs){const ms=c.chat_messages||c.messages||[];const text=ms.map(m=>m.text||m.content?.map?.(z=>z.text||"").join("\n")||m.content||"").join("\n");push(c.name||c.title,"https://claude.ai/",text,c.uuid||c.id||Math.random())}}
+else {const arr=Array.isArray(x)?x:(x.conversations||x.chats||x.data||[x]);for(const c of arr){const ms=c.messages||c.turns||c.contents||[c];const text=ms.map(m=>m.text||m.content?.parts?.map?.(p=>p.text||p).join("\n")||m.content||m.prompt||m.response||"").join("\n");push(c.title||c.name, c.url, text,c.id||c.uuid||Math.random())}}
+return out}
