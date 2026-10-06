@@ -1,4 +1,4 @@
-import{dbPut,dbPutMany,dbDelete,dbClear,dbAll,dbCount}from"./db.js";
+import{dbPut,dbPutMany,dbDelete,dbClear,dbAll,dbCount,dbSearch}from"./db.js";
 const DEFAULT={indexWeb:true,indexAi:true,indexWebContent:false,geminiEnabled:false,geminiKey:"",importAccount:""};
 const AI=["chatgpt","gemini","aistudio","claude"];
 function sourceFor(url=""){try{const h=new URL(url).hostname;if(/chatgpt\\.com|chat\\.openai\\.com/.test(h))return"chatgpt";if(/gemini\\.google\\.com/.test(h))return"gemini";if(/aistudio\\.google\\.com/.test(h))return"aistudio";if(/claude\\.ai/.test(h))return"claude"}catch{}return"web"}
