@@ -58,3 +58,13 @@ Google Takeout → My Activity → Gemini Apps ובחר JSON.
 
 ## רישיון
 MIT
+
+
+## v2.1.0 additions
+- Per-site name and optional search description, editable from the extension action popup.
+- Optional Gemini-generated site metadata with about 30 Hebrew words and search keywords.
+- Read Later local list with save-and-close action.
+- Regular Web content indexing defaults to 25 seconds and is configurable.
+- Optional AI ranking of up to 20 top results; only limited metadata/snippets are sent.
+- Opening the popup itself does not read page content.
+- Gemini key remains session-only.
