@@ -9,7 +9,7 @@ function grab(){return findRoot()?.innerText?.trim()||""}
 function collect(){timer=0;if(location.href!==lastUrl){lastUrl=location.href;last=""}const text=grab();if(!text||text===last)return;last=text;chrome.runtime.sendMessage({type:"saveDoc",doc:{id:"page:"+location.origin+location.pathname,source,title:document.title||h,url:location.href,text:text.slice(0,180000),visitedAt:Date.now(),kind:"page"}}).catch(()=>{})}
 function schedule(ms=delay){if(timer)return;timer=setTimeout(()=>{if(typeof requestIdleCallback==="function")requestIdleCallback(collect,{timeout:1200});else collect()},ms)}
 function attach(){const next=findRoot();if(!next||next===root)return;observer?.disconnect();root=next;observer=new MutationObserver(()=>schedule());observer.observe(root,{subtree:true,childList:true,characterData:true})}
-function stateAndStart(){chrome.runtime.sendMessage({type:"getIndexPolicy"}).then(s=>{if(source==="web")delay=Math.max(5000,Math.min(120000,Number(s.delaySec||25)*1000));else delay=2500;s.active&&boot()}).catch(()=>boot())}
+function stateAndStart(){chrome.runtime.sendMessage({type:"getIndexPolicy",source}).then(s=>{if(!s.active)return;if(source==="web")delay=Math.max(5000,Math.min(120000,Number(s.delaySec||25)*1000));else delay=2500;boot()}).catch(()=>{})}
 function boot(){attach();schedule(source==="web"?delay:1800);setTimeout(attach,1200);setTimeout(attach,3000);setTimeout(attach,6000)}
 stateAndStart();
 setInterval(()=>{if(location.href!==lastUrl){lastUrl=location.href;last="";clearTimeout(timer);timer=0;schedule(source==="web"?delay:1800)}},3000);
