@@ -31,6 +31,7 @@ chrome.history.onVisited.addListener(async item=>{const s=await settings();if(!i
 chrome.runtime.onMessage.addListener((m,sender,send)=>{(async()=>{
   const st=await settings();
   if(m.type==="getState"){requireUi(sender);return{ok:true,settings:st,count:await dbCount(),readLaterCount:await dbReadLaterCount(),geminiKeyPresent:!!(await getGeminiKey())}};
+  if(m.type==="getRecentSites"){requireUi(sender);const items=await chrome.history.search({text:"",startTime:0,maxResults:100});const seen=new Set(),rows=[];for(const x of items){const u=String(x.url||"");if(!/^https?:\/\//i.test(u)||seen.has(u))continue;seen.add(u);rows.push({id:x.id,title:x.title||u,url:u,visitedAt:x.lastVisitTime||0,source:"web"});if(rows.length>=50)break}return{ok:true,results:rows}};
   if(m.type==="getIndexPolicy"){const source=m.source==="web"?"web":m.source;return{ok:true,active:source==="web"?st.indexWebContent:st.indexAi,blocked:source==="web"&&isBlockedSite(m.url||sender.url),delaySec:st.webIndexDelaySec}};
   if(m.type==="getSitePolicy"){requireUi(sender);return{ok:true,blocked:isBlockedSite(m.url),webIndex:st.indexWebContent}};
   if(m.type==="setGeminiKey"){requireUi(sender);const key=String(m.key||"").trim();if(key)await chrome.storage.session.set({geminiKey:key});else await chrome.storage.session.remove("geminiKey");return{ok:true}};
