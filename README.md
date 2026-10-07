@@ -1,8 +1,11 @@
-# Tosaf Chipus – AI Universal Search v2.3.6
+# Tosaf Chipus – AI Universal Search v2.4.0
 
 תוסף Chrome לחיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרי Web.
 
-## מה חדש ב־2.3.6
+## מה חדש ב־2.4.0
+
+- ייבוא שיחות מציע כעת כברירת מחדל ייבוא כותרות בלבד, עם אפשרות נפרדת לייבוא תוכן מלא.
+- שיחות AI מקבלות קידומת מקור בשם, למשל `AISTUDIO- ...`, `CHATGPT- ...`, `GEMINI- ...`, `CLAUDE- ...`.
 
 - תוקנה שגיאת תחביר ב־`saveSite` שמנעה מה־Service Worker להיטען.
 
