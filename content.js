@@ -2,7 +2,7 @@
 const h=location.hostname;
 const source=/chatgpt\.com|chat\.openai\.com/.test(h)?"chatgpt":/gemini\.google\.com/.test(h)?"gemini":/aistudio\.google\.com/.test(h)?"aistudio":/claude\.ai/.test(h)?"claude":"web";
 const AI_PREFIX={chatgpt:"GPT",gemini:"GEMINI",aistudio:"AISTUDIO",claude:"CLAUDE"};
-function decorateAiTitle(){if(!AI_PREFIX[source])return;let t=String(document.title||"").trim();if(!t)return;const p=AI_PREFIX[source];const re=source==="chatgpt"?/^(?:GPT|CHATGPT)\s*-\s*/i:new RegExp("^"+p+"\\s*-\\s*","i");t=t.replace(re,"").trim();document.title=p+"- "+t;}
+function decorateAiTitle(){if(!AI_PREFIX[source])return;let t=String(document.title||"").trim();if(!t)return;const p=AI_PREFIX[source];const re=source==="chatgpt"?/^(?:GPT|CHATGPT)\s*-\s*/i:new RegExp("^"+p+"\s*-\s*","i");t=t.replace(re,"").trim();document.title=p+" - "+t;}
 let last="",timer=0,root=null,observer,lastUrl=location.href,delay=2500;
 const CANDIDATES=["article","main",'[role="main"]','[itemprop="articleBody"]',"#content",".p-body-main",".article-body",".entry-content",".post-content"];
 const REMOVE="nav,header,footer,aside,form,script,style,noscript,svg,button,[role=navigation],[role=banner],[role=contentinfo],[role=complementary]";
