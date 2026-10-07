@@ -12,7 +12,7 @@ const BLOCKED_CONTENT_HOSTS=[
 const AI_CALL_TIMES=[];
 function siteKeyFor(url=""){try{return new URL(url).hostname.toLowerCase().replace(/^www\./,"")}catch{return""}}
 
-function aiDisplayTitle(source,title){const p={chatgpt:"GPT",gemini:"GEMINI",aistudio:"AISTUDIO",claude:"CLAUDE"}[source];let t=String(title||"").trim();if(!p)return t;const re=source==="chatgpt"?/^(?:GPT|CHATGPT)\s*-\s*/i:new RegExp("^"+p+"\\s*-\\s*","i");t=t.replace(re,"").trim();return p+"- "+(t||"שיחה")}
+function aiDisplayTitle(source,title){const p={chatgpt:"GPT",gemini:"GEMINI",aistudio:"AISTUDIO",claude:"CLAUDE"}[source];let t=String(title||"").trim();if(!p)return t;const re=source==="chatgpt"?/^(?:GPT|CHATGPT)\s*-\s*/i:new RegExp("^"+p+"\s*-\s*","i");t=t.replace(re,"").trim();return p+" - "+(t||"שיחה")}
 function sourceFor(url=""){try{const h=new URL(url).hostname;if(/chatgpt\.com|chat\.openai\.com/.test(h))return"chatgpt";if(/gemini\.google\.com/.test(h))return"gemini";if(/aistudio\.google\.com/.test(h))return"aistudio";if(/claude\.ai/.test(h))return"claude"}catch{}return"web"}
 function isBlockedSite(url){const k=siteKeyFor(url);return BLOCKED_CONTENT_HOSTS.some(x=>k===x||k.endsWith("."+x))}
 async function settings(){const x=await chrome.storage.local.get({settings:DEFAULT});const s={...DEFAULT,...x.settings};s.webIndexDelaySec=Math.min(120,Math.max(5,Number(s.webIndexDelaySec)||25));return s}
