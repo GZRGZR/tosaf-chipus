@@ -1,6 +1,6 @@
 (()=>{if(window.top!==window)return;if(window.__AI_SEARCH_INJECTED__)return;window.__AI_SEARCH_INJECTED__=true;
 const h=location.hostname;
-const source=/chatgpt\.com|chat\.openai\.com/.test(h)?"chatgpt":/gemini\.google\.com/.test(h)?"gemini":/aistudio\.google\.com/.test(h)?"aistudio":/claude\.ai/.test(h)?"claude":"web";\nconst AI_PREFIX={chatgpt:"CHATGPT",gemini:"GEMINI",aistudio:"AISTUDIO",claude:"CLAUDE"};\nfunction decorateAiTitle(){if(!AI_PREFIX[source])return;const t=String(document.title||"").trim();if(!t)return;const p=AI_PREFIX[source];const re=new RegExp("^"+p+"\\\\s*-\\\\s*","i");if(!re.test(t))document.title=p+"- "+t;}
+const source=/chatgpt\.com|chat\.openai\.com/.test(h)?"chatgpt":/gemini\.google\.com/.test(h)?"gemini":/aistudio\.google\.com/.test(h)?"aistudio":/claude\.ai/.test(h)?"claude":"web";\nconst AI_PREFIX={chatgpt:"CHATGPT",gemini:"GEMINI",aistudio:"AISTUDIO",claude:"CLAUDE"};\nfunction decorateAiTitle(){if(!AI_PREFIX[source])return;const t=String(document.title||"").trim();if(!t)return;const p=AI_PREFIX[source];const re=new RegExp("^"+p+"\\s*-\\s*","i");if(!re.test(t))document.title=p+"- "+t;}
 let last="",timer=0,root=null,observer,lastUrl=location.href,delay=2500;
 const CANDIDATES=["article","main",'[role="main"]','[itemprop="articleBody"]',"#content",".p-body-main",".article-body",".entry-content",".post-content"];
 const REMOVE="nav,header,footer,aside,form,script,style,noscript,svg,button,[role=navigation],[role=banner],[role=contentinfo],[role=complementary]";
