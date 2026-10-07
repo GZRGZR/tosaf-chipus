@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "תוסף חיפוש חכם – שיחות ואתרים",
-  "version": "2.4.3",
-  "description": "חיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרים, עם הרחבת שאילתה אופציונלית באמצעות Gemini. כותרות AI מקבלות קידומת מקור גם בטאב הדפדפן וגם באינדקס.",
+  "version": "2.4.4",
+  "description": "חיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרים, עם Gemini והגדרות שמירה ובדיקת חיבור.",
   "permissions": [
     "storage",
     "history",
@@ -15,7 +15,8 @@
     "https://chat.openai.com/*",
     "https://gemini.google.com/*",
     "https://aistudio.google.com/*",
-    "https://claude.ai/*"
+    "https://claude.ai/*",
+    "https://generativelanguage.googleapis.com/*"
   ],
   "optional_host_permissions": [
     "http://*/*",
