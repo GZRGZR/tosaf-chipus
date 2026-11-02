@@ -1,5 +1,6 @@
 import {dbAll,dbPagesAll,dbReadLaterAll,dbFixedSitesAll} from "./db.js";
 chrome.runtime.onMessage.addListener((message,sender,sendResponse)=>{
+  chrome.runtime.sendMessage({type:"backupReady"}).catch(()=>{});
   if(message?.type!=="runBackup")return;
   (async()=>{
     const [docs,pages,readLaterFromDb,fixedSitesFromDb,settingsResult]=await Promise.all([dbAll(),dbPagesAll(),dbReadLaterAll(),dbFixedSitesAll(),chrome.runtime.sendMessage({type:"getBackupSettings"})]);
