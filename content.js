@@ -8,7 +8,29 @@ const CANDIDATES=["article","main",'[role="main"]','[itemprop="articleBody"]',"#
 const REMOVE="nav,header,footer,aside,form,script,style,noscript,svg,button,[role=navigation],[role=banner],[role=contentinfo],[role=complementary]";
 function rootScore(e){let t="";try{t=(e.innerText||"").trim()}catch{return-1}if(t.length<200)return-1;let links=0;try{for(const a of e.querySelectorAll("a"))links+=(a.innerText||"").trim().length}catch{}const ratio=Math.min(1,links/Math.max(1,t.length));let bonus=e.tagName==="ARTICLE"?7000:e.tagName==="MAIN"?5000:0;return Math.min(t.length,60000)*(1-ratio*.7)+bonus}
 function findRoot(){let best=null,bestScore=-1;for(const sel of CANDIDATES){for(const e of document.querySelectorAll(sel)){const s=rootScore(e);if(s>bestScore){best=e;bestScore=s}}}return best||document.body}
-function cleanedBodyText(){const clone=document.body.cloneNode(true);clone.querySelectorAll(REMOVE).forEach(e=>e.remove());return(clone.innerText||"").trim()}
+function cleanedBodyText(){
+  if(!document.body)return"";
+  const styleCache=new WeakMap();
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{
+    acceptNode(node){
+      const parent=node.parentElement;
+      if(!parent||parent.closest(REMOVE+', [hidden], [aria-hidden="true"], [inert]'))return NodeFilter.FILTER_REJECT;
+      for(let el=parent;el&&el!==document.body;el=el.parentElement){
+        let hidden=styleCache.get(el);
+        if(hidden===undefined){
+          const style=getComputedStyle(el);
+          hidden=style.display==="none"||style.visibility==="hidden";
+          styleCache.set(el,hidden);
+        }
+        if(hidden)return NodeFilter.FILTER_REJECT;
+      }
+      return node.nodeValue&&node.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;
+    }
+  });
+  const parts=[];
+  while(walker.nextNode())parts.push(walker.currentNode.nodeValue);
+  return parts.join(" ").replace(/\s+/g," ").trim();
+}
 function grab(){if(!root)root=findRoot();if(root===document.body)return cleanedBodyText();return(root.innerText||"").trim()}
 function collect(){timer=0;decorateAiTitle();if(location.href!==lastUrl){lastUrl=location.href;last=""}const text=grab();if(!text||text===last)return;last=text;chrome.runtime.sendMessage({type:"saveDoc",doc:{id:"page:"+location.origin+location.pathname+location.search,source,title:document.title||h,url:location.href,text:text.slice(0,180000),visitedAt:Date.now(),kind:"page"}}).catch(()=>{})}
 function schedule(ms=delay){if(timer)return;timer=setTimeout(()=>{if(typeof requestIdleCallback==="function")requestIdleCallback(collect,{timeout:1200});else collect()},ms)}
