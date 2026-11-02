@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((message,sender,sendResponse)=>{
     const blob=new Blob([JSON.stringify(backup)],{type:"application/json;charset=utf-8"});
     const url=URL.createObjectURL(blob);
     try{
-      const day=new Date().toISOString().slice(0,10);
+      const now=new Date(),day=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
       for(const filename of ["Tosaf Chipus Backups/latest.json","Tosaf Chipus Backups/daily/tosaf-chipus-"+day+".json"]){
         const result=await chrome.runtime.sendMessage({type:"downloadBackup",url,filename});
         if(!result?.ok)throw new Error(result?.error||"Chrome לא הצליח לשמור "+filename);
