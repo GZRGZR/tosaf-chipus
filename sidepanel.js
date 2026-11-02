@@ -1,6 +1,6 @@
 const $=id=>document.getElementById(id);
 let state={},viewMode="search",recentBefore=0,recentLoading=false,recentDone=false,recentSeen=new Set();
-(async()=>{try{state=await chrome.runtime.sendMessage({type:"getState"});$("smart").checked=!!state?.settings?.geminiEnabled;$("q").placeholder="חיפוש ב-"+(state?.count||0)+" פריטים…";refreshCounts()}catch(e){$("status").textContent="שגיאה בטעינת התוסף: "+(e.message||e)}})();
+(async()=>{try{state=await chrome.runtime.sendMessage({type:"getState"});$("smart").checked=false;$("q").placeholder="חיפוש ב-"+(state?.count||0)+" פריטים…";refreshCounts()}catch(e){$("status").textContent="שגיאה בטעינת התוסף: "+(e.message||e)}})();
 $("settings").onclick=()=>chrome.runtime.openOptionsPage();
 $("clear").onclick=async()=>{if(confirm("למחוק את כל האינדקס המקומי?")){await chrome.runtime.sendMessage({type:"clear"});if(viewMode==="results")search();else if(viewMode==="recent")showRecentSites(true);else render([])}};
 $("tabSearch").onclick=()=>{if($("q").value.trim())search();else showRecentSites(true)};
