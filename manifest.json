@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "תוסף חיפוש חכם – שיחות ואתרים",
-  "version": "2.6.2",
-  "description": "חיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרים, עם Gemini והגדרות שמירה ובדיקת חיבור.",
+  "version": "2.7.0",
+  "description": "חיפוש מקומי ומאוחד בשיחות AI, בהיסטוריית Chrome ובתוכן אתרים, עם שיוך אתרים לפרויקטים.",
   "permissions": [
     "storage",
     "downloads",
